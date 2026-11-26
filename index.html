@@ -2,153 +2,86 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Maze Snake AI - 100% Same</title>
+<title>Maze Snake AI - Original</title>
 <style>
 body{background:#000;display:flex;flex-direction:column;align-items:center;margin:0;font-family:Arial}
-.top{width:480px;display:flex;justify-content:space-between;color:#fff;font-weight:bold;padding:8px 0;font-size:14px}
-canvas{border:3px solid #00ffcc;background:#000}
-button{padding:12px 25px;margin:12px;background:#ff9900;border:none;border-radius:10px;font-weight:bold;font-size:16px;cursor:pointer}
+.top{width:480px;display:flex;justify-content:space-between;color:#fff;font-weight:bold;padding:8px 0}
+canvas{border:3px solid #00ffcc;background:#7a4a00}
+button{padding:12px 25px;margin:12px;background:#ff9900;border:none;border-radius:10px;font-weight:bold;font-size:16px}
 </style>
 </head>
 <body>
 <div class="top"><span>SNAKE</span><span id="score">SCORE: 0</span></div>
 <canvas id="game" width="480" height="480"></canvas>
 <button onclick="startGame()">▶ START AI</button>
-
 <script>
 const canvas=document.getElementById('game');
 const ctx=canvas.getContext('2d');
-const COLS=24, ROWS=24, SIZE=20;
+const COLS=28, ROWS=28, SIZE=480/COLS;
 let snake, apple, score, interval, maze;
 
-// 100% Same Wala Brown Maze - Photo Jaisa
+// ORIGINAL PHOTO WALA MAZE - Brown Background, Black Gali
 const mazeMap=[
-"111111111111111111111111",
-"100000000111000000000001",
-"101111110101111111110101",
-"101000010100000000010101",
-"101011010111111110010101",
-"101010000100000010000101",
-"101011111101111011111101",
-"100000000001000000000001",
-"111111111101011111111101",
-"100000001001010000001001",
-"101111101001011111101001",
-"101000101000000001000001",
-"101010101111111101011101",
-"100010100000001000010001",
-"111010111111101111010101",
-"100010000001000000010001",
-"101111111101011111010101",
-"101000000001010000010101",
-"101011111111010111110101",
-"100010000000010000000101",
-"111010111111111111110101",
-"100000000000000000010001",
-"101111111111111111111101",
-"100000000000000000000001",
-"111111111111111111111111",
+"1111111111111111111111111111",
+"1000000001111110000000000001",
+"1011111101000010111111110101",
+"1010000101011101000000010101",
+"1010110101010101111111010101",
+"1000100001010001000001010001",
+"1110111111010111110101111101",
+"1000100000010100010100000101",
+"1010101111100101010111100101",
+"1010100000101101010000100101",
+"1010111110101001011110101101",
+"1000000010100001000010100001",
+"1111111010111111011010111111",
+"1000001010100000010010000001",
+"1011101010101111011011111101",
+"1010101000101000010000000101",
+"1010101110101111110111100101",
+"1000100000100000010100100001",
+"1010111111110111010100111111",
+"1010000000010101010100000001",
+"1011111101010101010111111101",
+"1000000101000101000100000101",
+"1110100101011101010101110101",
+"1000100001000001010001000001",
+"1010111111110111011111011101",
+"1010000000000100000000010001",
+"1011111111110111111111010101",
+"1000000000000000000000000001",
 ];
-
 function buildMaze(){
   maze=[];
-  for(let y=0;y<ROWS;y++){
-    maze[y]=[];
-    for(let x=0;x<COLS;x++){
-      maze[y][x]= mazeMap[y][x]==='1' ? 1:0;
-    }
-  }
+  for(let y=0;y<ROWS;y++){maze[y]=[];for(let x=0;x<COLS;x++){maze[y][x]=mazeMap[y][x]==='1'?1:0;}}
 }
-
-function findPath(start, target){
-  let queue=[[start]];
-  let visited=new Set([start.x+","+start.y]);
-  while(queue.length){
-    let path=queue.shift();
-    let cur=path[path.length-1];
-    if(cur.x===target.x && cur.y===target.y) return path;
-    let dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
-    for(let d of dirs){
-      let nx=cur.x+d.x, ny=cur.y+d.y;
-      if(nx<0||ny<0||nx>=COLS||ny>=ROWS) continue;
-      if(maze[ny][nx]===1) continue;
-      if(visited.has(nx+","+ny)) continue;
-      visited.add(nx+","+ny);
-      queue.push([...path,{x:nx,y:ny}]);
-    }
-  }
+function findPath(start,target){
+  let queue=[[start]]; let visited=new Set([start.x+","+start.y]);
+  while(queue.length){let path=queue.shift();let cur=path[path.length-1];
+  if(cur.x===target.x&&cur.y===target.y) return path;
+  let dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+  for(let d of dirs){let nx=cur.x+d.x,ny=cur.y+d.y;if(nx<0||ny<0||nx>=COLS||ny>=ROWS)continue;if(maze[ny][nx]===1)continue;if(visited.has(nx+","+ny))continue;visited.add(nx+","+ny);queue.push([...path,{x:nx,y:ny}]);}}
   return null;
 }
-
-function placeApple(){
-  while(true){
-    let x=Math.floor(Math.random()*COLS);
-    let y=Math.floor(Math.random()*ROWS);
-    if(maze[y][x]===0 && !snake.some(s=>s.x===x&&s.y===y)){
-      apple={x,y}; break;
-    }
-  }
-}
-
-function startGame(){
-  buildMaze();
-  snake=[{x:7,y:0},{x:6,y:0},{x:5,y:0},{x:4,y:0}];
-  score=0;
-  document.getElementById('score').innerText="SCORE: 0";
-  placeApple();
-  clearInterval(interval);
-  interval=setInterval(update,120);
-}
-
-function update(){
-  let head=snake[0];
-  let path=findPath(head, apple);
-  if(!path || path.length<2){ clearInterval(interval); return; }
-  let next=path[1];
-  snake.unshift(next);
-  if(next.x===apple.x && next.y===apple.y){
-    score+=10;
-    document.getElementById('score').innerText="SCORE: "+score;
-    placeApple();
-  } else {
-    snake.pop();
-  }
-  draw();
-}
-
+function placeApple(){while(true){let x=Math.floor(Math.random()*COLS);let y=Math.floor(Math.random()*ROWS);if(maze[y][x]===0&&!snake.some(s=>s.x===x&&s.y===y)){apple={x,y};break;}}}
+function startGame(){buildMaze();snake=[{x:12,y:1},{x:11,y:1},{x:10,y:1},{x:9,y:1}];score=0;document.getElementById('score').innerText="SCORE: 0";placeApple();clearInterval(interval);interval=setInterval(update,110);}
+function update(){let head=snake[0];let path=findPath(head,apple);if(!path||path.length<2){clearInterval(interval);return;}let next=path[1];snake.unshift(next);if(next.x===apple.x&&next.y===apple.y){score+=10;document.getElementById('score').innerText="SCORE: "+score;placeApple();}else{snake.pop();}draw();}
 function draw(){
-  ctx.fillStyle="black";
-  ctx.fillRect(0,0,480,480);
-  // Brown Maze
-  for(let y=0;y<ROWS;y++){
-    for(let x=0;x<COLS;x++){
-      if(maze[y][x]===1){
-        ctx.fillStyle="#7a4a00";
-        ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);
-      }
-    }
-  }
-  // Apple Red
-  ctx.fillStyle="red";
-  ctx.beginPath();
-  ctx.arc(apple.x*SIZE+10, apple.y*SIZE+10, 7, 0, Math.PI*2);
-  ctx.fill();
-  // Orange Snake
+  ctx.fillStyle="#7a4a00"; ctx.fillRect(0,0,480,480);
+  // Black Gali
+  for(let y=0;y<ROWS;y++){for(let x=0;x<COLS;x++){if(maze[y][x]===0){ctx.fillStyle="#000";ctx.fillRect(x*SIZE,y*SIZE,SIZE,SIZE);}}}
+  // Apple
+  ctx.fillStyle="red";ctx.beginPath();ctx.arc(apple.x*SIZE+SIZE/2,apple.y*SIZE+SIZE/2,6,0,Math.PI*2);ctx.fill();
+  // Snake Orange - Photo Jaisa Mota
   snake.forEach((s,i)=>{
-    ctx.fillStyle="#ff9900";
-    ctx.fillRect(s.x*SIZE, s.y*SIZE, SIZE, SIZE);
+    ctx.fillStyle="#ff8c00";ctx.fillRect(s.x*SIZE+1,s.y*SIZE+1,SIZE-2,SIZE-2);
     if(i===0){
-      ctx.fillStyle="white";
-      ctx.beginPath(); ctx.arc(s.x*SIZE+7, s.y*SIZE+9, 5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(s.x*SIZE+14, s.y*SIZE+9, 5, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle="black";
-      ctx.beginPath(); ctx.arc(s.x*SIZE+7, s.y*SIZE+9, 2.5, 0, Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(s.x*SIZE+14, s.y*SIZE+9, 2.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle="white";ctx.beginPath();ctx.arc(s.x*SIZE+5,s.y*SIZE+7,4,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(s.x*SIZE+12,s.y*SIZE+7,4,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle="black";ctx.beginPath();ctx.arc(s.x*SIZE+5,s.y*SIZE+7,2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.arc(s.x*SIZE+12,s.y*SIZE+7,2,0,Math.PI*2);ctx.fill();
     }
   });
 }
-buildMaze();
-snake=[{x:7,y:0},{x:6,y:0},{x:5,y:0}]; apple={x:10,y:10}; draw();
+buildMaze();snake=[{x:12,y:1},{x:11,y:1},{x:10,y:1}];apple={x:5,y:20};draw();
 </script>
 </body>
 </html>
